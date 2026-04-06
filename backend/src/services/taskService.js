@@ -9,11 +9,6 @@ class TaskService {
   }
 
   async getAllTasks() {
-    return await this._fetchAllTasks();
-  }
-
-  async _fetchAllTasks() {
-    // Aquí se puede agregar lógica adicional si se requiere en el futuro
     return this.taskRepository.findAll();
   }
 

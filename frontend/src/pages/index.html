@@ -20,6 +20,12 @@
         <div class="task-panel-head">
           <h2>Tareas</h2>
           <span id="taskCounter">0 items</span>
+          <select id="statusFilter" style="margin-left:1rem">
+            <option value="all">Todas</option>
+            <option value="pending">Pendientes</option>
+            <option value="in_progress">En progreso</option>
+            <option value="completed">Completadas</option>
+          </select>
         </div>
         <div id="taskList" class="task-list"></div>
       </section>
@@ -33,7 +39,7 @@
     </template>
 
     <script type="module">
-      import { renderTaskCard } from '../components/taskCard.js';
+      import { createTaskCard } from '../components/taskCard.js';
       import {
         getTasks,
         createTask,
@@ -45,11 +51,14 @@
       const taskCounterEl = document.getElementById('taskCounter');
       const newTaskBtn = document.getElementById('newTaskBtn');
       const emptyStateTemplate = document.getElementById('emptyStateTemplate');
+      const statusFilterEl = document.getElementById('statusFilter');
+
+      let allTasks = [];
 
       async function loadTasks() {
         try {
-          const tasks = await getTasks();
-          renderTasks(tasks);
+          allTasks = await getTasks();
+          renderTasks();
         } catch (error) {
           renderError(error.message);
         }
@@ -63,7 +72,12 @@
         taskListEl.appendChild(card);
       }
 
-      function renderTasks(tasks) {
+      function renderTasks() {
+        const selected = statusFilterEl.value;
+        let tasks = allTasks;
+        if (selected !== 'all') {
+          tasks = allTasks.filter(t => t.status === selected);
+        }
         taskListEl.innerHTML = '';
         taskCounterEl.textContent = `${tasks.length} items`;
 
@@ -73,7 +87,7 @@
         }
 
         tasks.forEach((task, index) => {
-          const card = renderTaskCard(task, {
+          const card = createTaskCard(task, {
             onToggleComplete: async (current) => {
               const nextStatus = current.status === 'completed' ? 'pending' : 'completed';
               await updateTaskStatus(current.id, nextStatus);
@@ -93,6 +107,7 @@
           taskListEl.appendChild(card);
         });
       }
+  statusFilterEl.addEventListener('change', renderTasks);
 
       newTaskBtn.addEventListener('click', async () => {
         const title = window.prompt('Titulo de la tarea:');

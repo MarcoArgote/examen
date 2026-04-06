@@ -14,7 +14,7 @@ export function taskProgress(status) {
   return STATUS_PERCENT[status] ?? 0;
 }
 
-export function renderTaskCard(task, actions = {}) {
+export function createTaskCard(task, actions = {}) {
   const card = document.createElement('article');
   card.className = `task-card status-${task.status}`;
 
