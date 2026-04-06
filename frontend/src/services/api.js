@@ -1,27 +1,22 @@
 const API_URL = 'http://localhost:3000/api/tasks';
 
+
 async function request(url, options = {}) {
   const response = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
     ...options
   });
-
+  if (response.status === 204) return null;
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
   if (!response.ok) {
-    let detail = 'Error inesperado';
-    try {
-      const body = await response.json();
-      detail = body.message || detail;
-    } catch (_err) {
-      detail = response.statusText || detail;
-    }
-    throw new Error(detail);
+    throw new Error((data && data.message) || response.statusText || 'Error inesperado');
   }
-
-  if (response.status === 204) {
-    return null;
-  }
-
-  return response.json();
+  return data;
 }
 
 export function getTasks() {
