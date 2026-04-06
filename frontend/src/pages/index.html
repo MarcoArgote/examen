@@ -33,7 +33,7 @@
     </template>
 
     <script type="module">
-      import { createTaskCard } from '../components/taskCard.js';
+      import { renderTaskCard } from '../components/taskCard.js';
       import {
         getTasks,
         createTask,
@@ -73,7 +73,7 @@
         }
 
         tasks.forEach((task, index) => {
-          const card = createTaskCard(task, {
+          const card = renderTaskCard(task, {
             onToggleComplete: async (current) => {
               const nextStatus = current.status === 'completed' ? 'pending' : 'completed';
               await updateTaskStatus(current.id, nextStatus);
