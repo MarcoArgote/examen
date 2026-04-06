@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task List - Project Exam</title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">Ejemplo de frontend</p>
+          <h1>Task List</h1>
+        </div>
+        <button id="newTaskBtn" class="new-task-btn" type="button">+ New</button>
+      </header>
+
+      <section class="task-panel">
+        <div class="task-panel-head">
+          <h2>Tareas</h2>
+          <span id="taskCounter">0 items</span>
+        </div>
+        <div id="taskList" class="task-list"></div>
+      </section>
+    </main>
+
+    <template id="emptyStateTemplate">
+      <article class="empty-state">
+        <h3>No hay tareas todavía</h3>
+        <p>Crea tu primera tarea con el boton + New.</p>
+      </article>
+    </template>
+
+    <script type="module">
+      import { createTaskCard } from '../components/taskCard.js';
+      import {
+        getTasks,
+        createTask,
+        updateTaskStatus,
+        deleteTask
+      } from '../services/api.js';
+
+      const taskListEl = document.getElementById('taskList');
+      const taskCounterEl = document.getElementById('taskCounter');
+      const newTaskBtn = document.getElementById('newTaskBtn');
+      const emptyStateTemplate = document.getElementById('emptyStateTemplate');
+
+      async function loadTasks() {
+        try {
+          const tasks = await getTasks();
+          renderTasks(tasks);
+        } catch (error) {
+          renderError(error.message);
+        }
+      }
+
+      function renderError(message) {
+        taskListEl.innerHTML = '';
+        const card = document.createElement('article');
+        card.className = 'empty-state error-state';
+        card.innerHTML = `<h3>Error de carga</h3><p>${message}</p>`;
+        taskListEl.appendChild(card);
+      }
+
+      function renderTasks(tasks) {
+        taskListEl.innerHTML = '';
+        taskCounterEl.textContent = `${tasks.length} items`;
+
+        if (!tasks.length) {
+          taskListEl.appendChild(emptyStateTemplate.content.cloneNode(true));
+          return;
+        }
+
+        tasks.forEach((task, index) => {
+          const card = createTaskCard(task, {
+            onToggleComplete: async (current) => {
+              const nextStatus = current.status === 'completed' ? 'pending' : 'completed';
+              await updateTaskStatus(current.id, nextStatus);
+              await loadTasks();
+            },
+            onDelete: async (current) => {
+              const isConfirmed = window.confirm(`Eliminar la tarea "${current.title}"?`);
+              if (!isConfirmed) {
+                return;
+              }
+              await deleteTask(current.id);
+              await loadTasks();
+            }
+          });
+
+          card.style.animationDelay = `${index * 80}ms`;
+          taskListEl.appendChild(card);
+        });
+      }
+
+      newTaskBtn.addEventListener('click', async () => {
+        const title = window.prompt('Titulo de la tarea:');
+        if (title === null) {
+          return;
+        }
+
+        const description = window.prompt('Descripcion corta:') || '';
+
+        try {
+          await createTask({ title, description, status: 'pending' });
+          await loadTasks();
+        } catch (error) {
+          window.alert(error.message);
+        }
+      });
+
+      loadTasks();
+    </script>
+  </body>
+</html>
