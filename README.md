@@ -1,3 +1,5 @@
+# Historial de cambios
+- Proyecto inicializado y estructura creada.
 # Project Exam - Task List (Express + Supabase + Vanilla JS)
 
 ## Descripcion
